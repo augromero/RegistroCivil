@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
-using RegistroCivil.Datos.EnMemoria;
+using RegistroCivil.Datos;
 using RegistroCivil.Dominio.DTOs;
 using RegistroCivil.Dominio.TiposIdentificacion;
 

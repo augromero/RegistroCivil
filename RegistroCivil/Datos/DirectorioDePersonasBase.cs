@@ -1,4 +1,4 @@
-﻿namespace RegistroCivil.Datos.EnMemoria
+﻿namespace RegistroCivil.Datos
 {
     public class DirectorioDePersonasBase
     {

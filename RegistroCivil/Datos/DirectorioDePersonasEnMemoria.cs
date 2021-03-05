@@ -5,7 +5,7 @@ using RegistroCivil.Dominio.DTOs;
 using RegistroCivil.Dominio.Entidades;
 using RegistroCivil.Dominio.TiposIdentificacion;
 
-namespace RegistroCivil.Datos.EnMemoria
+namespace RegistroCivil.Datos
 {
     public class DirectorioDePersonasEnMemoria : DirectorioDePersonasBase, IDirectorioDePersonas
     {

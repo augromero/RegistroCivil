@@ -3,7 +3,7 @@ using System.Data;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using RegistroCivil.Datos.EnMemoria;
+using RegistroCivil.Datos;
 using RegistroCivil.Dominio.DTOs;
 using RegistroCivil.Dominio.TiposIdentificacion;
 
