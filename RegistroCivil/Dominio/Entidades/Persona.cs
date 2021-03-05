@@ -21,6 +21,11 @@ namespace RegistroCivil.Dominio.Entidades
             return new Persona(Identificacion.Crear(solicitud.Tipo, solicitud.Numero), solicitud.Nombres, solicitud.Apellidos, solicitud.FechaNacimiento);
         }
 
+        public static Persona CrearDesdePersistencia(PersonaPersistencia personaPersistencia)
+        {
+            return new Persona(Identificacion.Crear(personaPersistencia.Tipo, personaPersistencia.NumeroIdentificacion), personaPersistencia.Nombres, personaPersistencia.Apellidos, personaPersistencia.FechaNacimiento);
+        }
+
         private Persona(Identificacion identificacion, string nombres, string apellidos, DateTime fechaNacimiento)
         {
             LanzaExcepcionSiHayArgumentosIncompletos(nombres, apellidos);
@@ -39,6 +44,11 @@ namespace RegistroCivil.Dominio.Entidades
         public string NombreCompletoConIdentificacion => $"{_identificacion} - {NombreCompleto}";
         public string NombreCompletoConIdentificacionYEdad => $"{NombreCompletoConIdentificacion} - Edad: {Edad} años.";
         
+        public PersonaPersistencia ParaPersistir()
+        {
+            return new PersonaPersistencia(_identificacion.Tipo, _identificacion.Numero, _nombres, _apellidos, _fechaNacimiento);
+        }
+
         public override string ToString()
         {
             return NombreCompletoConIdentificacionYEdad;

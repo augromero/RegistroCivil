@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using RegistroCivil.Datos.EnMemoria;
 
 namespace RegistroCivil
@@ -28,9 +29,15 @@ namespace RegistroCivil
         {
 
             services.AddControllers();
-            services.AddSingleton<DirectorioDePersonasEnMemoria>();
-        }
+            
+            //En memoria
+            //services.AddSingleton<IDirectorioDePersonas, DirectorioDePersonasEnMemoria>();
 
+            //En base de datos sqlServer
+            services.AddDbContext<IDirectorioDePersonas, DirectorioDePersonasEnSqlServer>(builder => builder
+                .UseSqlServer(@"Server=(localdb)\mssqllocaldb;Database=RegistroCivil"));
+        }
+        
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {

@@ -10,9 +10,9 @@ namespace RegistroCivil.Controllers
     [ApiController]
     public class DirectorioController : ControllerBase
     {
-        private readonly DirectorioDePersonasEnMemoria _directorio;
+        private readonly IDirectorioDePersonas _directorio;
 
-        public DirectorioController(DirectorioDePersonasEnMemoria directorio)
+        public DirectorioController(IDirectorioDePersonas directorio)
         {
             _directorio = directorio;
         }

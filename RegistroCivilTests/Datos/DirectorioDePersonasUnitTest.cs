@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RegistroCivil.Datos.EnMemoria;
 using RegistroCivil.Dominio.DTOs;
@@ -11,12 +12,22 @@ namespace RegistroCivilTests.Datos
     [TestClass]
     public class DirectorioDePersonasUnitTest
     {
-        private DirectorioDePersonasEnMemoria _directorio;
+        //En memoria
+        //private DirectorioDePersonasEnMemoria _directorio;
+
+        //relacional
+        private DirectorioDePersonasEnSqlServer _directorio;
 
         [TestInitialize]
         public void Inicializar()
         {
-            _directorio = new DirectorioDePersonasEnMemoria();
+            //test de la implementación en memoria
+            //_directorio = new DirectorioDePersonasEnMemoria();
+
+
+            //Test de la implementación relacional pero en sqlServerInMemory
+            _directorio = new DirectorioDePersonasEnSqlServer(new DbContextOptionsBuilder<DirectorioDePersonasEnSqlServer>()
+                .UseInMemoryDatabase($"{Guid.NewGuid()}").Options);
         }
 
         [TestMethod]
@@ -35,7 +46,7 @@ namespace RegistroCivilTests.Datos
             _directorio.AgregarPersona(new SolcitudCreacionPersona("CC", "79879078", "Augusto", "Romero", new DateTime(1978, 12, 7)));
             var ex = Assert.ThrowsException<ConstraintException>(() => _directorio.AgregarPersona(new SolcitudCreacionPersona("CC", "79879078", "Octavio Augusto", "Romero", new DateTime(1978, 12, 7))));
 
-            Assert.AreEqual(DirectorioDePersonasEnMemoria.ErrorNoSePuedeRegistrarPorqueYaExisteUnaPersonaRegistradaConEsaIdentificacion, ex.Message);
+            Assert.AreEqual(DirectorioDePersonasBase.ErrorNoSePuedeRegistrarPorqueYaExisteUnaPersonaRegistradaConEsaIdentificacion, ex.Message);
         }
 
         [TestMethod]
@@ -67,7 +78,7 @@ namespace RegistroCivilTests.Datos
             var identificacion = new CedulaCiudadania("79879078");
             var ex = Assert.ThrowsException<ConstraintException>(() => _directorio.EliminarPersona(identificacion));
 
-            Assert.AreEqual(string.Format(DirectorioDePersonasEnMemoria.ErrorLaPersonaIdentificadaConNoEstaRegistradaEnElDirectorio, identificacion), ex.Message);
+            Assert.AreEqual(string.Format(DirectorioDePersonasBase.ErrorLaPersonaIdentificadaConNoEstaRegistradaEnElDirectorio, identificacion), ex.Message);
         }
     }
 }
