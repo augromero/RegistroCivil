@@ -12,30 +12,33 @@ namespace RegistroCivilTests.Datos
     [TestClass]
     public class DirectorioDePersonasUnitTest
     {
-        //En memoria
-        //private DirectorioDePersonasEnMemoria _directorio;
-
-        //relacional
-        private DirectorioDePersonasEnSqlServer _directorio;
+        
+        private DirectorioDePersonasEnMemoria _directorioEnMemoria;
+        private DirectorioDePersonasEnSqlServer _directorioSqlServer;
 
         [TestInitialize]
         public void Inicializar()
         {
-            //test de la implementación en memoria
-            //_directorio = new DirectorioDePersonasEnMemoria();
+            _directorioEnMemoria = new DirectorioDePersonasEnMemoria();
 
 
-            //Test de la implementación relacional pero en sqlServerInMemory
-            _directorio = new DirectorioDePersonasEnSqlServer(new DbContextOptionsBuilder<DirectorioDePersonasEnSqlServer>()
+            _directorioSqlServer = new DirectorioDePersonasEnSqlServer(new DbContextOptionsBuilder<DirectorioDePersonasEnSqlServer>()
                 .UseInMemoryDatabase($"{Guid.NewGuid()}").Options);
         }
 
         [TestMethod]
         public void AgregaPersonaAlDirectorio()
         {
-            _directorio.AgregarPersona(new SolcitudCreacionPersona("CC", "79879078", "Augusto", "Romero", new DateTime(1978, 12, 7)));
+            AcertarAgregarPersona(_directorioEnMemoria);
+            AcertarAgregarPersona(_directorioSqlServer);
+        }
 
-            var personaObtenida = _directorio.ObtenerPersona(new CedulaCiudadania("79879078"));
+        private void AcertarAgregarPersona(IDirectorioDePersonas directorio)
+        {
+            directorio.AgregarPersona(new SolcitudCreacionPersona("CC", "79879078", "Augusto", "Romero",
+                new DateTime(1978, 12, 7)));
+
+            var personaObtenida = directorio.ObtenerPersona(new CedulaCiudadania("79879078"));
 
             Assert.AreEqual("Augusto Romero", personaObtenida.NombreCompleto);
         }
@@ -43,22 +46,58 @@ namespace RegistroCivilTests.Datos
         [TestMethod]
         public void LanzaErrorSiIntentaAgregarDosPersonasConLaMismaIdentificacion()
         {
-            _directorio.AgregarPersona(new SolcitudCreacionPersona("CC", "79879078", "Augusto", "Romero", new DateTime(1978, 12, 7)));
-            var ex = Assert.ThrowsException<ConstraintException>(() => _directorio.AgregarPersona(new SolcitudCreacionPersona("CC", "79879078", "Octavio Augusto", "Romero", new DateTime(1978, 12, 7))));
+            AcertarIntentoDePersonasRepetidas(_directorioEnMemoria);
+            AcertarIntentoDePersonasRepetidas(_directorioSqlServer);
+        }
 
-            Assert.AreEqual(DirectorioDePersonasBase.ErrorNoSePuedeRegistrarPorqueYaExisteUnaPersonaRegistradaConEsaIdentificacion, ex.Message);
+        [TestMethod]
+        public void LanzaErrorSiIntentaObtenerPersonaConIdentificacionInexistente()
+        {
+            AcertarIntentarObtenerPersonaNoRegistrada(_directorioEnMemoria);
+            AcertarIntentarObtenerPersonaNoRegistrada(_directorioSqlServer);
+        }
+
+        private void AcertarIntentarObtenerPersonaNoRegistrada(IDirectorioDePersonas directorio)
+        {
+            var identificacion = new CedulaCiudadania("79879078");
+            var ex = Assert.ThrowsException<ConstraintException>(() => directorio.ObtenerPersona(identificacion));
+
+            Assert.AreEqual(
+                string.Format(DirectorioDePersonasBase.ErrorLaPersonaIdentificadaConNoEstaRegistradaEnElDirectorio,
+                    identificacion), ex.Message);
+        }
+
+        private void AcertarIntentoDePersonasRepetidas(IDirectorioDePersonas directorio)
+        {
+            directorio.AgregarPersona(new SolcitudCreacionPersona("CC", "79879078", "Augusto", "Romero", new DateTime(1978, 12, 7)));
+            
+            var ex = Assert.ThrowsException<ConstraintException>(() => directorio
+                .AgregarPersona(new SolcitudCreacionPersona("CC", "79879078", "Octavio Augusto", "Romero", new DateTime(1978, 12, 7))));
+
+            Assert.AreEqual(
+                DirectorioDePersonasBase.ErrorNoSePuedeRegistrarPorqueYaExisteUnaPersonaRegistradaConEsaIdentificacion,
+                ex.Message);
         }
 
         [TestMethod]
         public void ObtenerTodasLasPersonasRetornaElListadoOrdenadoPorNombre()
         {
-            _directorio.AgregarPersona(new SolcitudCreacionPersona("CC", "52427119", "Elena", "Jaramillo", new DateTime(1978, 5, 23)));
-            _directorio.AgregarPersona(new SolcitudCreacionPersona("CC", "52118442", "Zenayda", "Gonzalez", new DateTime(1979, 2, 3)));
-            _directorio.AgregarPersona(new SolcitudCreacionPersona("CC", "79879078", "Augusto", "Romero", new DateTime(1978, 12, 7)));
+            AcertarRetornoDeTodasLasPersonasOrdenadas(_directorioEnMemoria);
+            AcertarRetornoDeTodasLasPersonasOrdenadas(_directorioSqlServer);
+        }
 
-            var todasLasPersonas = _directorio.ObtenerTodasLasPersonas();
-            
-            Assert.AreEqual(3, _directorio.CantidadDePersonas());
+        private void AcertarRetornoDeTodasLasPersonasOrdenadas(IDirectorioDePersonas directorio)
+        {
+            directorio.AgregarPersona(new SolcitudCreacionPersona("CC", "52427119", "Elena", "Jaramillo",
+                new DateTime(1978, 5, 23)));
+            directorio.AgregarPersona(new SolcitudCreacionPersona("CC", "52118442", "Zenayda", "Gonzalez",
+                new DateTime(1979, 2, 3)));
+            directorio.AgregarPersona(new SolcitudCreacionPersona("CC", "79879078", "Augusto", "Romero",
+                new DateTime(1978, 12, 7)));
+
+            var todasLasPersonas = directorio.ObtenerTodasLasPersonas();
+
+            Assert.AreEqual(3, directorio.CantidadDePersonas());
             Assert.IsTrue(todasLasPersonas.First().Contains("Augusto Romero"));
             Assert.IsTrue(todasLasPersonas.Last().Contains("Zenayda Gonzalez"));
         }
@@ -66,19 +105,34 @@ namespace RegistroCivilTests.Datos
         [TestMethod]
         public void EliminaUnaPersonaDelDirectorio()
         {
-            _directorio.AgregarPersona(new SolcitudCreacionPersona("CC", "79879078", "Augusto", "Romero", new DateTime(1978, 12, 7)));
-            _directorio.EliminarPersona(new CedulaCiudadania("79879078"));
+            AcertarEliminacionPersona(_directorioEnMemoria);
+            AcertarEliminacionPersona(_directorioSqlServer);
+        }
 
-            Assert.AreEqual(0, _directorio.CantidadDePersonas());
+        private void AcertarEliminacionPersona(IDirectorioDePersonas directorio)
+        {
+            directorio.AgregarPersona(new SolcitudCreacionPersona("CC", "79879078", "Augusto", "Romero",
+                new DateTime(1978, 12, 7)));
+            directorio.EliminarPersona(new CedulaCiudadania("79879078"));
+
+            Assert.AreEqual(0, directorio.CantidadDePersonas());
         }
 
         [TestMethod]
         public void LanzaErrorSiIntentaEliminarUnaPersonaQueNoEstaRegistrada()
         {
-            var identificacion = new CedulaCiudadania("79879078");
-            var ex = Assert.ThrowsException<ConstraintException>(() => _directorio.EliminarPersona(identificacion));
+            AcertarEliminacionPersonaInexistente(_directorioEnMemoria);
+            AcertarEliminacionPersonaInexistente(_directorioSqlServer);
+        }
 
-            Assert.AreEqual(string.Format(DirectorioDePersonasBase.ErrorLaPersonaIdentificadaConNoEstaRegistradaEnElDirectorio, identificacion), ex.Message);
+        private void AcertarEliminacionPersonaInexistente(IDirectorioDePersonas directorio)
+        {
+            var identificacion = new CedulaCiudadania("79879078");
+            var ex = Assert.ThrowsException<ConstraintException>(() => directorio.EliminarPersona(identificacion));
+
+            Assert.AreEqual(
+                string.Format(DirectorioDePersonasBase.ErrorLaPersonaIdentificadaConNoEstaRegistradaEnElDirectorio,
+                    identificacion), ex.Message);
         }
     }
 }

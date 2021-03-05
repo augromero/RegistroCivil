@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using Microsoft.EntityFrameworkCore;
 using RegistroCivil.Dominio.DTOs;
 using RegistroCivil.Dominio.Entidades;
 using RegistroCivil.Dominio.TiposIdentificacion;
